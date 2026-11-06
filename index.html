@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor de Busca & Player GDrive Público</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #4285F4;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Prefixo visual estático para mostrar que o comando já está embutido */
+        .prefix {
+            position: absolute;
+            left: 12px;
+            color: #666;
+            font-size: 16px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Afasta o texto do Passo 1 para não sobrepor o prefixo oculto */
+        #keyword {
+            padding-left: 175px;
+        }
+
+        input[type="text"]:focus {
+            border-color: #4285F4;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #357ae8;
+        }
+
+        .player-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            background: #000;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        .player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .status-msg {
+            text-align: center;
+            color: #888;
+            padding: 40px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🔍 Motor de Busca & Player GDrive Público</h1>
+            <p>Dorking estruturado por debaixo do código para o GitHub Pages.</p>
+        </header>
+
+        <!-- PASSO 1: APENAS A PALAVRA CHAVE -->
+        <div class="section">
+            <h3>Passo 1: Buscar vídeos abertos na Web</h3>
+            <p>Digite apenas o nome do vídeo (o sistema já aplica o dork em segundo plano):</p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="prefix">site:drive.google.com</span>
+                    <input type="text" id="keyword" placeholder="chaves">
+                </div>
+                <button onclick="buscarNoDrivePublico()">Minar no Google</button>
+            </div>
+        </div>
+
+        <!-- PASSO 2: APENAS A TERMINAÇÃO (ID OU FINAL DA URL) -->
+        <div class="section">
+            <h3>Passo 2: Executar com a Terminação</h3>
+            <p>Cole apenas o ID do vídeo encontrado ou a terminação dele:</p>
+            <div class="input-group">
+                <input type="text" id="driveUrl" placeholder="Exemplo: 1A2B3C4D5E6F7G ou o link completo do arquivo">
+                <button onclick="carregarVideo()" style="background-color: #00f076; color: #000;">Injetar Player</button>
+            </div>
+
+            <div class="player-wrapper" id="playerWrapper">
+                <iframe id="videoIframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+            <div id="placeholderText" class="status-msg">Nenhum vídeo carregado no momento.</div>
+        </div>
+    </div>
+
+    <script>
+        function buscarNoDrivePublico() {
+            const palavraChave = document.getElementById('keyword').value.trim();
+            if (!palavraChave) {
+                alert('Por favor, digite o nome de um vídeo!');
+                return;
+            }
+
+            // O comando "site:drive.google.com" fica por baixo de forma fixa aqui:
+            const dorkQuery = `site:drive.google.com "${palavraChave}" (mp4|m4v|mkv|avi)`;
+            const googleSearchUrl = `https://google.com{encodeURIComponent(dorkQuery)}`;
+            window.open(googleSearchUrl, '_blank');
+        }
+
+        function carregarVideo() {
+            let entrada = document.getElementById('driveUrl').value.trim();
+            const playerWrapper = document.getElementById('playerWrapper');
+            const videoIframe = document.getElementById('videoIframe');
+            const placeholderText = document.getElementById('placeholderText');
+
+            if (!entrada) {
+                alert('Insira o ID ou link do vídeo!');
+                return;
+            }
+
+            let videoId = entrada;
+
+            // Se você colar o link completo por acidente, este trecho limpa e extrai só a terminação/ID:
+            if (entrada.includes("drive.google.com")) {
+                const regExp = /\/file\/d\/([^/]+)/;
+                const matches = entrada.match(regExp);
+                if (matches && matches[1]) {
+                    videoId = matches[1];
+                }
+            }
+
+            // Remove fragmentos como /view ou ?usp=sharing se sobrarem na terminação
+            videoId = videoId.split('/')[0].split('?')[0];
+
+            // Monta o link final para rodar no CSS
+            const embedUrl = `https://google.com{videoId}/preview`;
+
+            videoIframe.src = embedUrl;
+            playerWrapper.style.display = 'block';
+            placeholderText.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
